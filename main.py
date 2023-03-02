@@ -4,13 +4,20 @@ import matplotlib.pyplot as plt
 from itertools import product
 
 
-def network_recall(input, weights, max_iter=1000):
+def network_recall(input, weights, max_iter=1000, e=False):
+    energies = []
     recall = np.sign(input @ weights)
+    energies.append(energy(weights, input))
+
     for i in range(max_iter):
         prev_output = np.copy(recall)
         recall = np.sign(recall @ weights)
-        if np.array_equal(recall, prev_output):
+        if np.array_equal(recall, prev_output) and not e:
             break
+        energies.append(energy(weights,recall))
+    if e:
+        return recall, energies
+
     return recall
 
 
@@ -22,6 +29,14 @@ def train_hebbian(train_data):
     for i in range(n_samples):
         weights += np.outer(train_data[i], train_data[i])
     return weights / dim
+
+
+def energy(w,x):
+    e = 0
+    for i in range(len(x)):
+        for j in range(len(x)):
+            e += w[i][j]*x[i]*x[j]
+    return -e
 
 
 if __name__ == '__main__':
@@ -74,8 +89,55 @@ if __name__ == '__main__':
     #plt.show()
 
     random = np.sign(np.random.random(32 * 32) - 0.5)
-    plt.imshow(random.reshape((32, 32)))
+    #plt.imshow(random.reshape((32, 32)))
     #plt.show()
-    output = network_recall(random, weights)
-    plt.imshow(output.reshape((32, 32)))
+    #output = network_recall(random, weights)
+    #plt.imshow(output.reshape((32, 32)))
+    #plt.show()
+
+    # 3.3 Energy
+    train_data = p[:3].reshape((3, 32 * 32))
+    weights = train_hebbian(train_data)
+
+    print("Energy at attractors:")
+    for a in train_data:
+        print(energy(weights,a))
+
+    dist = p[9:].reshape((2, 32 * 32))
+    print("Energy at distorted patterns:")
+    for d in dist:
+        print(energy(weights,d))
+
+    p11 = p[10].reshape((32 * 32))
+
+    #output, e = network_recall(p11,weights,e=True, max_iter=5)
+    #random = np.sign(np.random.random(32 * 32) - 0.5)
+    #output, e = network_recall(random,weights,e=True, max_iter=10)
+
+    #plt.plot(range(len(e)), e)
+    #plt.xlabel("Iterations")
+    #plt.ylabel("Energy")
+    #plt.title("Evolution of the energy at the point of the distorded pattern p11 (sequential update)")
+    #plt.show()
+
+    random = np.random.choice([-1, 1], 1024)
+    weights = np.random.normal(0, 1, (1024, 1024))
+    np.fill_diagonal(weights, 0)
+    output, e = network_recall(random,weights,max_iter=10, e=True)
+    plt.plot(range(len(e)), e)
+    plt.xlabel("Iterations")
+    plt.ylabel("Energy")
+    plt.title("Evolution of the energy at the point of the distorded pattern p11 (sequential update)")
     plt.show()
+
+    weights = 0.5*(weights+weights.T)
+    output, e = network_recall(random,weights,max_iter=10, e=True)
+    plt.plot(range(len(e)), e)
+    plt.xlabel("Iterations")
+    plt.ylabel("Energy")
+    plt.title("Evolution of the energy at the point of the distorded pattern p11 (sequential update)")
+    plt.show()
+
+
+
+

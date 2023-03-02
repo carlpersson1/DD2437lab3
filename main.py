@@ -14,17 +14,27 @@ def sync_network_recall(input, weights, max_iter=1000):
     return recall
 
 
-def async_network_recall(input, weights, max_iter=1000):
+def async_network_recall(input, weights, max_iter=100000, img=False):
     if len(input.shape) == 1:
         input = np.array([input])
     dim = weights.shape[0]
+    image = []
     recall = input
+    same = 0
     for i in range(max_iter):
+        if i % 100 == 0 and img:
+            image.append(np.copy(input.reshape((32, 32))))
         prev_output = np.copy(recall)
-        for j in range(dim):
-            recall[:, j] = np.sign(recall @ weights[j])
+        j = np.random.randint(0, dim)
+        recall[:, j] = np.sign(recall @ weights[j])
         if np.array_equal(recall, prev_output):
+            same += 1
+        else:
+            same = 0
+        if same > 100:
             break
+    if img:
+        return recall, image
     return recall
 
 

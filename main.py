@@ -16,9 +16,9 @@ def sync_network_recall(input, weights, max_iter=1000):
 
 def async_network_recall(input, weights, max_iter=1000):
     if len(input.shape) == 1:
-        input = [input]
+        input = np.array([input])
     dim = weights.shape[0]
-    recall = np.sign(input @ weights)
+    recall = input
     for i in range(max_iter):
         prev_output = np.copy(recall)
         for j in range(dim):
